@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head th:include="common/common::head"></head>
+<body>
+<div id="header">
+    <div style="text-align:center; margin-top:25px; 
+        font-size:40px; font-weight:500; font-family:'STXingkai', '楷体', cursive;
+        color:white;">
+        管理员操作面板
+    </div>
+    <div style="text-align:left; margin-top:-35px; margin-left:20px; 
+        font-size:12px; font-weight:100; color:white;">
+        2025软件工程课设<br>7组
+    </div>
+
+    <!-- <h1><a href="dashboard.html">Matrix Admin</a></h1> -->
+</div>
+<!-- <div th:include="common/nav :: nav"></div> -->
+<div th:include="common/quit :: quit"></div>
+
+<div th:include="common/menu :: menu"></div>
+<div id="content">
+    <div class="container">
+        <div style = "font-size: 30px; font-weight: normal; margin-top: 5%">
+            <div style = "text-align:center;">欢迎使用社区管理系统❗</div>
+            <div>👈·左侧选择操作-------------------</div>
+            <div style = "text-align:right;">-------------------·右上角退出登录👆</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

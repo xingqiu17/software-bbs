@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>发布帖子</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+  <link rel="stylesheet" th:href="@{/css/global.css}">
+</head>
+<body>
+
+  <div th:include="common/header::header"></div>
+
+  <div class="main layui-clear">
+    <div class="fly-panel" pad20>
+      <h2 class="page-title">发布帖子</h2>
+
+      <!-- 还是 AJAX 提交，不需要 action/method -->
+      <form class="layui-form" id="formPost" style="margin:20px;">
+        <div class="layui-form-item">
+          <label class="layui-form-label">标题</label>
+          <div class="layui-input-block">
+            <input type="text" name="title" required lay-verify="required"
+                   placeholder="请输入标题" autocomplete="off" class="layui-input">
+          </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+          <label class="layui-form-label">描述</label>
+          <div class="layui-input-block">
+            <textarea id="L_content" name="content" placeholder="请输入内容"
+                      class="layui-textarea fly-editor" style="height:260px;"></textarea>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <label class="layui-form-label">标签</label>
+          <div class="layui-input-inline">
+            <select name="labelId" lay-verify="required" lay-search id="label_select">
+              <option value="">直接选择或搜索</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="layui-form-item">
+          <button type="button" class="layui-btn" lay-submit lay-filter="submitPost">立即发布</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div th:include="common/footer::footer"></div>
+
+  <!-- 脚本区 -->
+  <script th:src="@{/layui/layui.js}"></script>
+  <script th:src="@{/js/jquery-1.11.2.min.js}"></script>
+  <script th:src="@{/js/jquery.cookie.js}"></script>
+  <script th:src="@{/js/quark_api.js}"></script>
+
+  <script>
+    // 全局跨域携带 Cookie
+    $.ajaxSetup({
+      crossDomain: true,
+      xhrFields: { withCredentials: true }
+    });
+
+    // 加载标签列表
+    $.get(quark_label_getall_api, function(res){
+      if(res.status===200){
+        var html = res.data.map(function(l){ return '<option value="'+l.id+'">'+l.name+'</option>'; }).join('');
+        $('#label_select').append(html);
+        layui.form.render('select');
+      } else {
+        layer.msg(res.error, {icon:5});
+      }
+    });
+
+    layui.use(['form','layedit','layer'], function(){
+      var form    = layui.form,
+          layedit = layui.layedit,
+          layer   = layui.layer;
+
+      // 初始化编辑器
+      layedit.set({ uploadImage: { url: quark_upload_api, type: 'post' } });
+      var editorIndex = layedit.build('L_content');
+
+      // 监听提交
+      form.on('submit(submitPost)', function(data){
+        var content = layedit.getContent(editorIndex).trim();
+        if(!content){
+          layer.msg('内容不能为空', {icon:7});
+          return false;
+        }
+        var params = {
+          title:   data.field.title,
+          content: content,
+          labelId: data.field.labelId,
+          token:   getCookie()
+        };
+        // 发帖 AJAX
+        $.post(quark_posts_add_api, params, function(resp){
+          if(resp.status===200){
+            layer.msg('发布成功', {icon:1,time:600}, function(){
+              // 轮询检测详情页是否可用
+              var postId = resp.data;
+              var detailUrl = '/posts/detail?id=' + postId;
+              var attempts = 0, maxAttempts = 10;
+
+              function tryRedirect(){
+                $.ajax({
+                  url: detailUrl,
+                  type: 'HEAD',
+                  success: function(){
+                    window.location.href = detailUrl;
+                  },
+                  error: function(){
+                    attempts++;
+                    if(attempts < maxAttempts){
+                      setTimeout(tryRedirect, 250);
+                    }else{
+                      // 多次失败，还是跳转一下
+                      window.location.href = detailUrl;
+                    }
+                  }
+                });
+              }
+              tryRedirect();
+            });
+          } else {
+            layer.msg(resp.error||'发布失败', {icon:5});
+            if(resp.error==='请先登录！'){
+              window.location.href = '/user/login';
+            }
+          }
+        }, 'json');
+        return false; // 阻止原生提交
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Java Quark 社区-index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+
+    <style>
+        .fly-list-li {
+            transition: background-color 0.1s ease;
+        }
+        /* 鼠标悬浮时背景色变灰 */
+        .fly-list-li:hover {
+            background-color: #f2f2f2;
+        }
+    </style>
+
+</head>
+<body>
+
+<div th:include="common/header::header"></div>
+
+<div class="main layui-clear">
+    <div class="wrap" style="display: flex; gap: 20px; align-items: flex-start;">
+        <!-- 标签栏 -->
+        <div class="label-bar" style="width: 180px; flex-shrink: 0;">
+            <div class="fly-panel">
+                <h3 class="fly-panel-title">标签</h3>
+                <div id="label-list">
+                    <!-- 标签通过JS渲染 -->
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="fly-tab fly-tab-index">
+        <span>
+            <a href="/index">全部帖</a>
+            <a href="/index?type=good">精品帖</a>
+            <a href="/index?type=top">置顶帖</a>
+            <a href="javascript:void(0);" id="mySchoolBtn" style="cursor:pointer;">我的学校</a>
+        </span>
+                <form action="/index" method="get" class="fly-search">
+                    <i class="iconfont icon-sousuo"></i>
+                    <input class="layui-input" autocomplete="off" placeholder="搜索内容，回车跳转" type="text"
+                           name="search">
+                </form>
+                <!-- <a th:href="@{/posts/add}" class="layui-btn jie-add">发布帖子</a> -->
+            </div>
+
+            <ul class="fly-list">
+                <script id="posts" type="text/html">
+                    <ul>
+                        {{# layui.each(d.data, function(index, item){ }}
+                        <li class="fly-list-li">
+                            <a href="user/home?id={{item.user.id}}" class="fly-list-avatar">
+                                <img src="{{item.user.icon}}" alt="">
+                            </a>
+                            <h2 class="fly-tip">
+                                <a href="posts/detail?id={{item.id}}">{{ item.title }}</a>
+                                {{ item.top == true ? '<span class="fly-tip-stick">置顶</span>' :'' }}
+                                {{ item.good == true ? '<span class="fly-tip-jing">精帖</span>' : ''}}
+                            </h2>
+                            <p>
+                                <span><a href="user/home?id={{item.user.id}}">{{ item.user.username }}</a></span>
+                                <span>{{item.initTime}} </span>
+                                <span>{{item.label.name}}</span>
+                                <span class="fly-list-hint">
+                                            <i class="iconfont" title="回答">&#xe60c;</i> {{ item.replyCount }}
+                                </span>
+                            </p>
+                        </li>
+                        {{# }); }} {{# if(d.total === 0){ }}
+                        <li class="fly-none">没有任何帖子</li>
+                        {{# } }}
+                    </ul>
+                </script>
+                <div id="postss"></div>
+            </ul>
+            <div id="pager"></div>
+        </div>
+    </div>
+    <div class="edge">
+        <div class="fly-panel leifeng-rank">
+            <h3 class="fly-panel-title">近一月新用户 - TOP 12</h3>
+            <dl>
+                <script id="user" type="text/html">
+                    {{# layui.each(d.data, function(index, item){ }}
+                <dd>
+                    <a href="user/home?id={{item[0]}}">
+                        <img src="{{item[2]}}">
+                        <i>{{item[1]}}</i>
+                    </a>
+                </dd>
+                    {{# }); }}
+                </script>
+                <div id="users"></div>
+            </dl>
+        </div>
+        <script id="hot" type="text/html">
+        <dl class="fly-panel fly-list-one">
+            <dt class="fly-panel-title">近一月热门帖子</dt>
+            {{# layui.each(d.data, function(index, item){ }}
+            <dd>
+                <a href="posts/detail?id={{item[0]}}">{{item[1]}}</a>
+                <span><i class="iconfont">&#xe60c;</i> {{item[2]}}</span>
+            </dd>
+            {{# }); }}
+        </dl>
+        </script>
+        <div id="hots"></div>
+    </div>
+
+</div>
+<div th:include="common/footer::footer"></div>
+<script>
+// 是否只看我的学校
+var showMySchool = false;
+var currentLabelId = null;
+
+    // <!--根据url param 翻页获取信息-->
+    function loadPosts(laytpl, laypage, pageNo, renderpager) {
+        var type = $.getUrlParam('type');
+        var search =$.getUrlParam('search');
+        $.get(quark_posts_get_api, {
+            pageNo: pageNo,
+            length: 15,
+            type: type,
+            search: search, 
+            token: getCookie(), 
+            showschool: showMySchool ? 1 : 0, 
+            labelId: currentLabelId
+        }, function (data) {
+
+            if (data.status == 500){
+                layer.msg(data.error, {icon: 5});
+                return;
+            }
+            var posts = $("#posts").html();
+            laytpl(posts).render(data, function (html) {
+                $("#postss").html(html);
+                // 给每个帖子li绑定点击事件
+                $("#postss .fly-list-li").css("cursor","pointer").click(function(e){
+                    // 如果点击的是里面的链接或按钮，就不触发
+                    if ($(e.target).is("a") || $(e.target).parents("a").length) {
+                        return;
+                    }
+                    var postId = $(this).find("a[href*='posts/detail?id=']").attr("href").split("id=")[1];
+                    if (postId) {
+                        window.location.href = "posts/detail?id=" + postId;
+                    }
+                });
+            });
+
+            if (!renderpager) return;
+
+            laypage.render({
+                elem: 'pager'
+                ,limit:data.total
+                , count: data.pageSize //总页数
+                , jump: function (obj, first) {
+                    //得到了当前页，用于向服务端请求对应数据
+                    if (!first) {
+                        loadPosts(laytpl, laypage, obj.curr, false);
+                        $('body').prop('scrollTop','0');
+                    }
+                }
+            });
+        });
+    }
+
+    layui.use(['laypage', 'laytpl'], function () {
+        var laytpl = layui.laytpl;
+        var laypage = layui.laypage;
+        loadPosts(laytpl, laypage, 1, true);
+        
+        $("#mySchoolBtn").click(function(){
+            // 切换bool值
+            showMySchool = !showMySchool;
+            if (showMySchool) {
+                // 设置成灰色
+                $(this).css({
+                    "background-color": "#ccc",
+                    "color": "#666"
+                });
+            } else {
+                // 已经是灰色，恢复默认
+                $(this).css({
+                    "background-color": "",
+                    "color": ""
+                });
+            }
+            // 重新加载帖子
+            loadPosts(laytpl, laypage, 1, true);
+        });
+
+        //获取新用户
+        $.get(quark_rank_users_api,function (data) {
+            var tpl = $("#user").html();
+            laytpl(tpl).render(data,function (html) {
+                $("#users").html(html);
+            });
+        });
+
+        //获取热门帖子
+        $.get(quark_rank_posts_api,function (data) {
+            var tpl = $("#hot").html();
+            laytpl(tpl).render(data,function (html) {
+                $("#hots").html(html);
+            });
+        });
+    });
+
+
+</script>
+<script id="label-template" type="text/html">
+  <ul class="jie-row" style="max-height: 400px; overflow-y: auto; padding-left: 0;">
+    {{# layui.each(d.data, function(index, item){ if(index < 10) { }}
+    <li style="list-style: none; margin-bottom: 8px;">
+      <button onclick="tolabelDetaiail({{item.id}})" class="layui-btn layui-btn-normal layui-btn-xs" style="width: 100%; text-align: left;">
+        {{item.name}}
+        <span style="float: right; color: #999; font-size: 12px;">{{item.postsCount}}</span>
+      </button>
+    </li>
+    {{# } }); }}
+  </ul>
+</script>
+<script>
+    var laytpl, laypage;
+    layui.use(['laytpl'], function(){
+        laytpl = layui.laytpl;
+        laypage = layui.laypage;
+        $.get(quark_label_getall_api, function(data){
+        var tpl = $("#label-template").html();
+        laytpl(tpl).render(data, function(html){
+            $("#label-list").html(html);
+        });
+        });
+    });
+
+    function tolabelDetaiail(id){
+        currentLabelId = id;  // 存储当前选中标签
+        loadPosts(laytpl, laypage, 1, true); // 重新加载帖子
+    }
+</script>
+
+</body>
+</html>

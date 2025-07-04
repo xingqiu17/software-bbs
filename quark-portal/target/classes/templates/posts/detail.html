@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <title>Java Quark 社区</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+  <link rel="stylesheet" th:href="@{/css/global.css}">
+</head>
+<body>
+
+<div th:include="common/header::header"></div>
+
+<div class="main layui-clear">
+  <div class="wrap">
+    <div class="content detail">
+
+      <!-- 帖子与回复列表模板 -->
+      <script id="posts" type="text/html">
+        <div class="fly-panel detail-box">
+          <h1>{{d.data.posts.title}}</h1>
+          <div class="fly-tip fly-detail-hint">
+            {{ d.data.posts.top ? '<span class="fly-tip-stick">置顶</span>' : '' }}
+            {{ d.data.posts.good ? '<span class="fly-tip-jing">精帖</span>' : '' }}
+            <span>主题</span>
+            <div class="fly-list-hint">
+              <i class="iconfont" title="回答">&#xe60c;</i>{{d.data.posts.replyCount}}
+            </div>
+          </div>
+          <div class="detail-about">
+            <a class="jie-user" th:href="@{'/user/home?id=' + d.data.posts.user.id}">
+              <img src="{{d.data.posts.user.icon}}" alt="">
+              <cite>
+                {{d.data.posts.user.username}}
+                <em>发布时间：{{d.data.posts.initTime}}</em>
+              </cite>
+            </a>
+          </div>
+          <div class="detail-body photos" style="margin-bottom:20px;">
+            {{d.data.posts.content}}
+          </div>
+          <!-- 操作按钮模块 (收藏 + 点赞) -->
+          <div class="fly-panel" style="padding:15px;text-align:right;">
+            <button id="collectBtn"  class="layui-btn layui-btn-sm action-btn">
+              <i class="layui-icon" id="collectIcon"></i>
+              <span id="collectText"></span>
+              ( <span id="collectCount"></span> )
+            </button>
+
+            <button id="favoriteBtn" class="layui-btn layui-btn-sm action-btn" style="margin-left:8px;">
+              <i class="layui-icon" id="favoriteIcon"></i>
+              <span id="favoriteText"></span>
+              ( <span id="favoriteCount"></span> )
+            </button>
+          </div>
+
+          <!-- 隐藏域：供脚本读取 -->
+          <input type="hidden" id="post-id"           value="{{ d.data.posts.id }}">
+          <input type="hidden" id="post-isCollect"    value="{{ d.data.isCollect }}">
+          <input type="hidden" id="post-collectCount" value="{{ d.data.collectCount }}">
+          <input type="hidden" id="post-isFavorite"   value="{{ d.data.isFavorite }}">
+          <input type="hidden" id="post-favoriteCount" value="{{ d.data.favoriteCount }}">
+
+        <div class="fly-panel detail-box">
+          <ul class="jieda photos" id="jieda">
+            {{# layui.each(d.data.replys, function(index, item){ }}
+            <li data-id="{{item.id}}" class="jieda-daan">
+              <div class="detail-about detail-about-reply">
+                <a class="jie-user" th:href="@{'/user/home?id=' + item.user.id}">
+                  <img src="{{item.user.icon}}" alt="">
+                  <cite><i>{{item.user.username}}</i></cite>
+                </a>
+                <div class="detail-hits">
+                  <span>{{item.initTime}}</span>
+                </div>
+              </div>
+              <div class="detail-body jieda-body">
+                <p>{{item.content}}</p>
+              </div>
+            </li>
+            {{# }); }}
+            {{# if(d.total === 0){ }}
+            <li class="fly-none">没有任何回答</li>
+            {{# } }}
+          </ul>
+        </div>
+      </script>
+
+      <!-- 渲染容器 -->
+      <div id="postss"></div>
+      <div id="pager"></div>
+
+      <!-- 回复表单 -->
+      <div class="layui-form layui-form-pane">
+        <form class="layui-form" id="formReply">
+          <div class="layui-form-item layui-form-text">
+            <div class="layui-input-block">
+                <textarea id="L_content" name="content"
+                          placeholder="我要回复"
+                          class="layui-textarea fly-editor"
+                          style="height:150px;"></textarea>
+            </div>
+          </div>
+          <div class="layui-form-item">
+            <button class="layui-btn" lay-submit lay-filter="submitReply">提交回复</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div th:include="common/footer::footer"></div>
+
+<!-- 核心脚本：先引入依赖 -->
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/jquery-1.11.2.min.js}"></script>
+<script th:src="@{/js/jquery.cookie.js}"></script>
+<script th:src="@{/js/quark_api.js}"></script>
+
+<script>
+  // 全局跨域携带 Cookie
+  $.ajaxSetup({
+    crossDomain: true,
+    xhrFields: { withCredentials: true }
+  });
+
+  // 获取 URL 参数
+  var id = $.getUrlParam('id');
+
+  // 加载帖子详情与回复列表
+  layui.use(['laypage', 'laytpl'], function(){
+    var laytpl = layui.laytpl, laypage = layui.laypage;
+    loadReply(laytpl, laypage, 1, true);
+  });
+
+  function loadReply(laytpl, laypage, pageNo, renderpager) {
+    $.get(quark_posts_detail_api + id, {
+      pageNo: pageNo,
+      length: 10,
+      token: getCookie()     // ★ 带上登录令牌
+    }, function(data){
+      var tpl = document.getElementById('posts').innerHTML;
+      laytpl(tpl).render(data, function(html){
+        document.getElementById('postss').innerHTML = html;
+
+        /* ---------- 这里开始绑定收藏按钮 ---------- */
+        initCollect(
+                data.data.isCollect,
+                data.data.collectCount,
+                data.data.posts.id
+        );
+        /* ---------- 这里结束绑定收藏按钮 ---------- */
+
+
+
+        /* ---------- 这里开始绑定点赞按钮 ---------- */
+        initFavorite(
+                data.data.isFavorite,
+                data.data.favoriteCount,
+                data.data.posts.id
+        );
+        /* ---------- 这里结束绑定点赞按钮 ---------- */
+
+      });
+      if (!renderpager) return;
+      laypage.render({
+        elem: 'pager',
+        count: data.total,
+        limit: data.pageSize,
+        jump: function(obj, first){
+          if (!first) {
+            loadReply(laytpl, laypage, obj.curr, false);
+            document.body.scrollTop = 0;
+          }
+        }
+      });
+    });
+  }
+
+  // 绑定回复提交
+  layui.use(['form','layedit'], function(){
+    var form = layui.form,
+            layedit = layui.layedit,
+            layer = layui.layer;
+
+    // 编辑器初始化
+    layedit.set({
+      uploadImage: { url: quark_upload_api, type: 'post' }
+    });
+    var editorIndex = layedit.build('L_content');
+    // new_start
+    $("iframe[id^='LAY_layedit_']")[0].contentWindow.document.body.setAttribute("style","background-color:white !important;");
+    // new_end
+    form.on('submit(submitReply)', function(data){
+      var content = layedit.getContent(editorIndex).trim();
+      if (!content) {
+        layer.msg('输入的内容不能为空', {icon:7});
+        return false;
+      }
+      var params = {
+        content: content,
+        postsId: id,
+        token: getCookie()
+      };
+      $.post(quark_reply_add_api, params, function(res){
+        if (res.status === 200) {
+          layer.msg('回复成功', {icon:1,time:1000}, function(){
+            location.reload();
+          });
+        } else if (res.status === 400) {
+          layer.msg(res.error, {icon:7});
+        } else {
+          layer.msg(res.error, {icon:5});
+        }
+      }, 'json');
+      return false; // 阻止原生提交
+    });
+  });
+
+
+  /* -------- 收藏按钮逻辑 (最终版) -------- */
+  function initCollect(initFlag, initCount, postId){
+    var isCollect    = initFlag;
+    var collectCount = initCount;
+    var token        = getCookie(); // 从 Cookie 读取
+
+    render(); // 首次渲染按钮文字/图标
+
+    // 事件委托，确保模板渲染后再绑定
+    $(document).off('click', '#collectBtn').on('click', '#collectBtn', function(){
+      if(!token){ layui.layer.msg('请先登录'); return; }
+
+      var data = { postsId: postId, token: token };
+      if(isCollect){
+        var urlDel = quark_collects_api + '?postsId=' + postId + '&token=' + token;
+        $.ajax({ url: urlDel, type:'DELETE', success: handle });
+
+      }else{
+        $.post(quark_collects_api, data, handle);
+      }
+
+      function handle(res){
+        if(res.status === 200){
+          isCollect = !isCollect;
+          collectCount += isCollect ? 1 : -1;
+          render();
+        }else layui.layer.msg(res.error || '操作失败');
+      }
+    });
+
+    function render(){
+      $('#collectText').text(isCollect ? '取消收藏' : '收藏');
+      $('#collectCount').text(collectCount);
+      $('#collectIcon').html(isCollect ? '&#xe67a;' : '&#xe600;');
+    }
+  }
+  /* -------- 收藏按钮逻辑 End -------- */
+
+  /* -------- 点赞按钮逻辑 -------- */
+  function initFavorite(initFlag, initCount, postId){
+    var isFavorite    = initFlag;
+    var favoriteCount = initCount;
+    var token        = getCookie(); // 从 Cookie 读取
+
+    render(); // 首次渲染按钮文字/图标
+
+    // 事件委托，确保模板渲染后再绑定
+    $(document).off('click', '#favoriteBtn').on('click', '#favoriteBtn', function(){
+      if(!token){ layui.layer.msg('请先登录'); return; }
+
+      var data = { postsId: postId, token: token };
+      if(isFavorite){
+        var urlDel = quark_favorites_api + '?postsId=' + postId + '&token=' + token;
+        $.ajax({ url: urlDel, type:'DELETE', success: handle });
+
+      }else{
+        $.post(quark_favorites_api, data, handle);
+      }
+
+      function handle(res){
+        if(res.status === 200){
+          isFavorite = !isFavorite;
+          favoriteCount += isFavorite ? 1 : -1;
+          render();
+        }else layui.layer.msg(res.error || '操作失败');
+      }
+    });
+
+    function render(){
+      $('#favoriteText').text(isFavorite ? '取消点赞' : '点赞');
+      $('#favoriteCount').text(favoriteCount);
+      $('#favoriteIcon').html(isFavorite ? '&#xe67a;' : '&#xe600;');
+    }
+  }
+  /* -------- 点赞按钮逻辑 End -------- */
+
+</script>
+</body>
+</html>

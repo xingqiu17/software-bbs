@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>用户主页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+
+    <style>
+        .jie-row li {
+            transition: background-color 0.1s ease;
+        }
+        /* 鼠标悬浮时背景色变灰 */
+        .jie-row li:hover {
+            background-color: #f2f2f2;
+        }
+    </style>
+
+</head>
+<body style="margin-top: 65px;">
+
+<div th:include="common/header::header"></div>
+<script id="user" type="text/html">
+<div class="fly-home" style="position: relative; padding-bottom: 60px;">
+    <img src="{{d.data.user.icon}}" alt="">
+    <h1>
+        {{d.data.user.username}}
+        {{ d.data.user.sex == 0 ? ' <i class="iconfont icon-nan"></i>' : ''}}
+        {{ d.data.user.sex == 1 ? ' <i class="iconfont icon-nv"></i>' : ''}}
+    </h1>
+    
+    {{# if(d.data.user.school && d.data.user.school !== '') { }}
+        <p class="fly-home-school">{{ d.data.user.school }}</p>
+    {{# } }}
+    <p class="fly-home-info">
+        <i class="iconfont icon-shijian"></i><span>{{d.data.user.initTime}} 加入</span>
+    </p>
+
+    {{# if(d.data.user.id !== d.data.currentUser.id) { }}
+    <div style="margin-top: 15px; text-align: center;">
+        <button 
+        class="layui-btn layui-btn-normal layui-btn-fluid"
+        onclick="location.href='/chat/private?to={{d.data.user.id}}'">
+        私聊
+        </button>
+    </div>
+    {{# } }}
+
+
+    {{# if(d.data.user.signature && d.data.user.signature !== null) { }}
+        <p class="fly-home-sign" style="margin-top: 20px;">{{d.data.user.signature}}</p>
+    {{# } }}
+    </div>
+
+
+<div class="main fly-home-main">
+    <div class="layui-inline fly-home-jie">
+        <div class="fly-panel">
+            <h3 class="fly-panel-title">{{d.data.user.username}} 最近的发帖</h3>
+            <ul class="jie-row" >
+                {{# layui.each(d.data.posts, function(index, item){ }}
+                <li>
+                    {{ item.good == true ? ' <span class="fly-jing">精</span>' : ''}}
+                    <a href="../posts/detail?id={{item.id}}" class="jie-title">{{item.title}}</a>
+                    <i>{{item.initTime}}</i>
+                    <em>{{item.replyCount}}</em>
+                </li>
+                {{# }); }}
+            </ul>
+        </div>
+
+
+    </div>
+</div>
+
+</div>
+<script th:src="@{/js/jquery-1.11.2.min.js}"></script>
+<script th:src="@{/js/jquery.cookie.js}"></script>
+
+</script>
+<div id="users"></div>
+<div th:include="common/footer::footer"></div>
+<script>
+    var token = $.cookie('QUARK_TOKEN');
+    if (!token) {
+        console.error('未找到登录 token，请检查 Cookie 名称或登录流程');
+    }
+    var uid = $.getUrlParam('id');
+    layui.use(['laytpl'],function () {
+        var laytpl = layui.laytpl;
+
+        $.get(quark_user_detail_api+uid+ '?token=' + token,function (data) {
+            var user = $("#user").html();
+            laytpl(user).render(data,function (html) {
+                $("#users").html(html);
+
+                // 给每个帖子li绑定点击事件
+                $("#users .jie-row li")
+                    .css("cursor", "pointer")
+                    .click(function(e){
+                        // 如果点击的是里面的链接或按钮，就不触发
+                        if ($(e.target).is("a") || $(e.target).parents("a").length) {
+                            return;
+                        }
+
+                        // 尝试获取帖子链接
+                        var postLink = $(this).find("a[href*='posts/detail?id=']").attr("href");
+                        if (postLink) {
+                            window.location.href = postLink;
+                        }
+                    });
+
+            })
+
+        });
+
+
+    })
+//    alert(uid)
+</script>
+
+</body>
+</html>

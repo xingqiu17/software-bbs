@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" th:href="@{/css/matrix-login.css}" />
+    <link th:href="@{/font-awesome/css/font-awesome.css}" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.png}">
+    <!--<link th:href='@{http://fonts.googleapis.com/css?family=Open+Sans:400,700,800}' rel='stylesheet' type='text/css'/>-->
+    
+<style>button.btn-login:hover {
+    transform: scale(1.05);
+}</style>
+</head>
+<body>
+    
+<div style="text-align:center; margin-top:25px; 
+    font-size:40px; font-weight:500; font-family:'STXingkai', cursive;
+    color:white;">
+    管理员登录
+</div>
+
+<div id="loginbox" style="text-align: center;color: #f00;"><!--/*@thymesVar id="msg" type="java.lang.String"*/-->
+
+</head>
+<body>
+<div id="loginbox"><!--/*@thymesVar id="msg" type="java.lang.String"*/-->
+<span th:text="${msg}"></span>
+    <form id="loginform" class="form-vertical" th:action="@{/login}" action="" method="post">
+
+        <!-- <div class="control-group normal_text"> <h3><img th:src="@{img/logo.png}" alt="Logo" /></h3></div> -->
+
+        <div class="control-group">
+            <div class="controls">
+                <div class="main_input_box">
+                    <span class="add-on bg_lg"><i class="icon-user"></i></span><input type="text" name="username" placeholder="Username" style="width: 110%;"/>
+                </div>
+            </div>
+        </div>
+        <div class="control-group">
+            <div class="controls">
+                <div class="main_input_box">
+                    <span class="add-on bg_ly"><i class="icon-lock"></i></span><input type="password" name="password" placeholder="Password" style="width: 110%;"/>
+                </div>
+            </div>
+        </div>
+    </form>
+    <button
+        type="button"
+        class="btn btn-success btn-login"
+        onclick="$('#loginform').submit();"
+        style="            
+            background-color:#0a0;
+            color:#fff;
+            font-size:15px;
+            padding:10px;
+            cursor:pointer;
+            border:none;
+            border-radius:4px;
+            width: 50%; /* 宽度随屏幕变化 */
+            max-width: 300px; /* 最大不超过300px */
+            min-width: 150px; /* 最小不少于150px */">
+        Login
+    </button>
+</div>
+
+<script type="text/javascript" th:src="@{/js/jquery-1.11.2.min.js}"></script>
+
+</body>
+</html>

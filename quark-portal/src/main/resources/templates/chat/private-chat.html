@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>私聊</title>
+  <link rel="stylesheet" th:href="@{/layui/css/layui.css}">
+  <link rel="stylesheet" th:href="@{/css/global.css}">
+  <style>
+    body { background: #f2f2f2; padding-top: 65px; }
+    .chat-container { max-width: 900px; margin: 30px auto 0; background: #fff; border-radius: 4px;
+      overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .chat-header { padding: 15px; background: #009688; color: #fff; font-size: 18px; }
+    .chat-messages { padding: 15px; height: 500px; overflow-y: auto; background: #fafafa; }
+    .msg { margin-bottom: 15px; display: flex; }
+    .msg .avatar { width: 40px; height: 40px; border-radius: 20px; overflow: hidden; margin-right: 10px; }
+    .msg .bubble { max-width: 70%; padding: 10px 15px; border-radius: 4px; }
+    .msg.self { justify-content: flex-end; }
+    .msg.self .bubble { background: #cce5ff; }
+    .msg.other .bubble { background: #e2f7cb; }
+    .chat-footer { padding: 10px; display: flex; background: #fff; border-top: 1px solid #e6e6e6; }
+    .chat-footer .layui-input { flex: 1; margin-right: 10px; }
+    .emoji-panel { position: absolute; bottom: 60px; left: 80px; background: #fff; border: 1px solid #e6e6e6;
+      padding: 10px; border-radius: 4px; display: none; }
+    .emoji-panel img { width: 28px; height: 28px; margin: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div th:include="common/header :: header"></div>
+
+  <div class="chat-container">
+    <div class="chat-header"><span id="chatWith">正在加载聊天信息…</span></div>
+    <div class="chat-messages" id="msgBox"></div>
+
+    <div class="emoji-panel" id="emojiPanel">
+      <!-- 表情列表… -->
+    </div>
+
+    <div class="chat-footer layui-form">
+      <input type="text" id="inputMsg" placeholder="输入消息…" class="layui-input">
+      <button id="btnEmoji" class="layui-btn layui-btn-sm">😀</button>
+      <button id="btnUpload" class="layui-btn layui-btn-sm">📷</button>
+      <button id="btnSend" class="layui-btn layui-btn-normal layui-btn-sm">发送</button>
+    </div>
+  </div>
+
+  <script th:src="@{/js/jquery-1.11.2.min.js}"></script>
+  <script th:src="@{/js/jquery.cookie.js}"></script>
+  <script th:src="@{/js/quark_api.js}"></script>
+  <script th:src="@{/layui/layui.js}"></script>
+  <script th:src="@{/js/stomp.min.js}"></script>
+
+  <script th:inline="javascript">
+  /*<![CDATA[*/
+    var token    = $.cookie('QUARK_TOKEN') || '';
+    var toUserId = /*[[${toUserId}]]*/ 0;
+
+    // 加载昵称
+    $.get(quark_user_detail_api + toUserId + '?token=' + token, function(res){
+      $('#chatWith').text(
+        res.status===200 && res.data?.user
+          ? '与 ' + res.data.user.username + ' 私聊'
+          : '与 用户' + toUserId + ' 私聊'
+      );
+    });
+
+    // 表情
+    $('#btnEmoji').click(()=>$('#emojiPanel').toggle());
+    $('#emojiPanel img').click(function(){
+      $('#inputMsg').val($('#inputMsg').val() + $(this).data('code')).focus();
+    });
+
+    // 图片上传
+    layui.use(['upload'], function(){
+      layui.upload.render({
+        elem: '#btnUpload',
+        url: '/chat/upload',
+        headers: { 'Authorization': 'Bearer ' + token },
+        accept: 'images', size: 10240,
+        done: function(res){
+          if(res.status===200 && res.data.url) { sendMsg('<img src="'+res.data.url+'" style="max-width:120px;"/>'); }
+          else layer.msg('上传失败',{icon:5});
+        }
+      });
+    });
+
+    // —— 直接连原生 WebSocket —— 
+    var wsUrl = 'ws://localhost:8081/quarkServer/websocket';
+    var client = Stomp.client(wsUrl);
+
+    client.debug = function(msg){
+      console.log('%cSTOMP ▶︎','color:purple', msg);
+    };
+
+    client.connect(
+      { 'Authorization': 'Bearer ' + token },
+      function(frame){
+        console.log('%cSTOMP CONNECTED','color:green', frame);
+
+        client.subscribe('/user/queue/private', function(f){
+          console.log('%cSTOMP <<< MESSAGE','color:blue', f);
+          appendMsg('other', JSON.parse(f.body).content);
+        });
+
+        $('#btnSend').off('click').on('click', function(){
+          var txt = $('#inputMsg').val();
+          if(!txt) return;
+          console.log('%cSTOMP >>> SEND','color:orange', txt);
+          client.send('/app/chat',
+            { 'Authorization': 'Bearer ' + token },
+            JSON.stringify({ type:10, receiverId:toUserId, msg:txt })
+          );
+          appendMsg('self', txt);
+          $('#inputMsg').val('');
+        });
+      },
+      function(err){
+        console.error('%cSTOMP CONNECT ERROR','color:red', err);
+      }
+    );
+
+    function sendMsg(html){
+      $('#btnSend').click();
+    }
+    function appendMsg(who, txt){
+      var h = '<div class="msg '+who+'">'
+            + '<div class="avatar"><img src="/images/default-avatar.png"/></div>'
+            + '<div class="bubble">'+txt+'</div></div>';
+      $('#msgBox').append(h).scrollTop(1e10);
+    }
+  /*]]>*/
+  </script>
+</body>
+</html>
