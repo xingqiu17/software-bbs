@@ -8,8 +8,7 @@ import java.io.Serializable;
 /**
  * Rest响应数据
  *
- * @Author LHR
- * Create By 2017/8/11
+
  */
 public class QuarkResult implements Serializable {
     // 定义jackson对象

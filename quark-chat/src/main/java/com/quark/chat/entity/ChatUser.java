@@ -4,9 +4,7 @@ import com.quark.common.entity.User;
 import io.netty.channel.Channel;
 
 /**
- * @Author : ChinaLHR
- * @Date : Create in 21:31 2017/10/23
- * @Email : 13435500980@163.com
+
  */
 public class ChatUser {
 

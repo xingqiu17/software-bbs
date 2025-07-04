@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * @Author LHR
- * Create By 2017/8/24
+
  */
 @Service
 public class UserServiceImpl implements UserService{

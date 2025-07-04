@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Created by lhr on 17-7-31.
+ * *
  */
 @Repository
 @CacheConfig(cacheNames = "permissions")

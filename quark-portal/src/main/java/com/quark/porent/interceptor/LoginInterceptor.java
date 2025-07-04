@@ -14,9 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Cookie;     
 
 /**
- * @Author LHR
- * Create By 2017/8/27
- *
+
  * 登录拦截
  */
 public class LoginInterceptor implements HandlerInterceptor {

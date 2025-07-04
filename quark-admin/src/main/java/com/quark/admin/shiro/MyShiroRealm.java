@@ -17,9 +17,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.io.FileWriter;
 import java.io.IOException;
-/**
- * Created by lhr on 17-8-1.
- */
+
 public class MyShiroRealm extends AuthorizingRealm {
 
     @Resource

@@ -17,8 +17,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @Author LHR
- * Create By 2017/8/21
+
  */
 @Service
 public class UserServiceImpl extends BaseServiceImpl<UserDao, User> implements UserService {

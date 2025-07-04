@@ -9,8 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 /**
- * @Author LHR
- * Create By 2017/9/3
+
  */
 @Service
 public class LabelServiceImpl extends BaseServiceImpl<LabelDao,Label> implements LabelService{

@@ -8,8 +8,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * @Author LHR
- * Create By 2017/8/21
+
  */
 @SpringBootApplication
 public class PortalApplication {

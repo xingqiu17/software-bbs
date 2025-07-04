@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @Author LHR
- * Create By 2017/8/30
+
  */
 @Api(value = "回复接口", description = "对帖子进行回复,点赞回复等服务")
 @RestController

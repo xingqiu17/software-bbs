@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by lhr on 17-8-3.
- */
+
+
 @RestController
 @RequestMapping("/permissions")
 public class PermissionController extends BaseController {

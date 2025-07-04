@@ -8,8 +8,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 /**
- * @Author LHR
- * Create By 2017/8/24
+
  */
 public class CookieUtils {
     /**

@@ -24,9 +24,7 @@ import org.springframework.stereotype.Component;
 import static com.quark.chat.protocol.QuarkChatType.*;
 
 /**
- * @Author : ChinaLHR
- * @Date : Create in 10:00 2017/10/24
- * @Email : 13435500980@163.com
+
  *
  * WebSocket握手/用户认证 Handler
  */

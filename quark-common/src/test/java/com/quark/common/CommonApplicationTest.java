@@ -15,9 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.sql.DataSource;
 
-/**
- * Created by lhr on 17-7-30.
- */
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @EnableCaching//缓存支持
 @SpringBootTest

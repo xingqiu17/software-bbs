@@ -5,8 +5,7 @@ import com.quark.common.entity.Reply;
 import org.springframework.data.domain.Page;
 
 /**
- * @Author LHR
- * Create By 2017/9/3
+
  */
 public interface ReplyService extends BaseService<Reply>{
 

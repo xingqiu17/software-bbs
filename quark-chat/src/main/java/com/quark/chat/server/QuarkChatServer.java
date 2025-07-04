@@ -32,9 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @Author : ChinaLHR
- * @Date : Create in 15:06 2017/10/22
- * @Email : 13435500980@163.com
+
  */
 @Component
 public class QuarkChatServer implements Server {

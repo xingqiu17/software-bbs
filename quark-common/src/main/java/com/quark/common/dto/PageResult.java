@@ -5,8 +5,7 @@ import java.io.Serializable;
 /**
  * 后台翻页响应数据
  *
- * @Author LHR
- * Create By 2017/8/10
+
  */
 public class PageResult<T> implements Serializable {
 

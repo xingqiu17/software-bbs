@@ -1,8 +1,7 @@
 package com.quark.rest.utils;
 
 /**
- * @Author LHR
- * Create By 2017/8/22
+
  */
 public class Constants {
     //Upload常量

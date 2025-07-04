@@ -23,9 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by lhr on 17-8-1.
- */
+
 @Configuration
 public class ShiroConfig {
     @Autowired

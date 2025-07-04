@@ -7,8 +7,7 @@ import com.quark.porent.entity.QuarkResult;
 import java.io.IOException;
 
 /**
- * @Author LHR
- * Create By 2017/8/24
+
  */
 public class JsonUtils {
     // 定义jackson对象

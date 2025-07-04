@@ -9,9 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-/**
- * Created by lhr on 17-8-1.
- */
+
 @Configuration
 @EnableCaching
 public class RedisConfig extends CachingConfigurerSupport {
