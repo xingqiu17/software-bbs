@@ -11,6 +11,7 @@
 <style>button.btn-login:hover {
     transform: scale(1.05);
 }</style>
+
 </head>
 <body>
     
@@ -21,26 +22,25 @@
 </div>
 
 <div id="loginbox" style="text-align: center;color: #f00;"><!--/*@thymesVar id="msg" type="java.lang.String"*/-->
-
+</div>
 </head>
+
 <body>
 <div id="loginbox"><!--/*@thymesVar id="msg" type="java.lang.String"*/-->
-<span th:text="${msg}"></span>
+    <span th:text="${msg}"></span>
     <form id="loginform" class="form-vertical" th:action="@{/login}" action="" method="post">
-
-        <!-- <div class="control-group normal_text"> <h3><img th:src="@{img/logo.png}" alt="Logo" /></h3></div> -->
 
         <div class="control-group">
             <div class="controls">
                 <div class="main_input_box">
-                    <span class="add-on bg_lg"><i class="icon-user"></i></span><input type="text" name="username" placeholder="Username" style="width: 110%;"/>
+                    <span class="add-on bg_lg"><i class="icon-user"></i></span><input type="text" name="username" placeholder="Username"/>
                 </div>
             </div>
         </div>
         <div class="control-group">
             <div class="controls">
                 <div class="main_input_box">
-                    <span class="add-on bg_ly"><i class="icon-lock"></i></span><input type="password" name="password" placeholder="Password" style="width: 110%;"/>
+                    <span class="add-on bg_ly"><i class="icon-lock"></i></span><input type="password" name="password" placeholder="Password"/>
                 </div>
             </div>
         </div>
@@ -57,6 +57,8 @@
             cursor:pointer;
             border:none;
             border-radius:4px;
+            display: block;
+            margin: 0 auto;
             width: 50%; /* 宽度随屏幕变化 */
             max-width: 300px; /* 最大不超过300px */
             min-width: 150px; /* 最小不少于150px */">

@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
-    @Value("${UPLOAD_PATH:D:/home/images/upload/}")
+    @Value("${UPLOAD_PATH:opt/images/upload/}")
     private String uploadPath;
 
 
